@@ -1,0 +1,128 @@
+﻿@{
+    ViewBag.Title = "Phân Tích Bộ Sản Phẩm Bán Chạy";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4 mb-5">
+    <div class="card shadow-sm border-0">
+        <div class="card-header text-white" style="background-color: #2b78e4;">
+            <h4 class="m-0 font-weight-bold"><i class="fas fa-chart-line mr-2"></i> Phân tích bộ sản phẩm lợi nhuận cao (Top-K)</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="row mb-4 bg-light p-3 rounded border align-items-center mx-0">
+                <div class="col-md-8">
+                    <p class="mb-0 text-muted">
+                        Hệ thống sử dụng thuật toán <strong>VertTopKDS</strong> để quét qua các đơn hàng hoàn thành và tìm ra <strong>K</strong> tập sản phẩm thường xuyên được mua cùng nhau mang lại tổng lợi nhuận cao nhất.
+                    </p>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text font-weight-bold">Nhập K:</span>
+                        </div>
+                        <input type="number" class="form-control text-center font-weight-bold" id="inputK" value="5" min="1" placeholder="Ví dụ: 5, 10">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary font-weight-bold" id="btnAnalyze" onclick="runAnalysis()">
+                                <span id="spinner" class="spinner-border spinner-border-sm d-none mr-1" role="status" aria-hidden="true"></span>
+                                <i class="fas fa-search mr-1"></i> Phân tích
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="resultContainer" class="d-none">
+                <h5 class="font-weight-bold text-success border-bottom pb-2 mb-3" id="resultTitle">Kết quả Top K</h5>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover text-center shadow-sm">
+                        <thead class="bg-light">
+                            <tr>
+                                <th style="width: 10%;">Xếp hạng</th>
+                                <th style="width: 65%;">Bộ Sản Phẩm Đề Xuất</th>
+                                <th style="width: 25%;">Lợi Nhuận Tính Toán</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function formatCurrency(number) {
+        return number.toLocaleString('vi-VN') + ' đ';
+    }
+
+    function runAnalysis() {
+        const kValue = parseInt(document.getElementById('inputK').value);
+        if (!kValue || kValue <= 0) {
+            alert("Vui lòng nhập số K lớn hơn 0!");
+            return;
+        }
+
+        const btn = document.getElementById('btnAnalyze');
+        const spinner = document.getElementById('spinner');
+        const resultContainer = document.getElementById('resultContainer');
+        const tbody = document.getElementById('resultTableBody');
+        const title = document.getElementById('resultTitle');
+
+        // Giao diện chuyển sang trạng thái chờ
+        btn.disabled = true;
+        spinner.classList.remove('d-none');
+        resultContainer.classList.add('d-none');
+
+        // Gửi Request gọi thuật toán VertTopKDS
+        $.ajax({
+            url: '@Url.Action("PhantichTopK", "QuanLyKhaiThac")',
+            type: 'POST',
+            data: { kValue: kValue },
+            success: function (response) {
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+
+                if (response.success) {
+                    resultContainer.classList.remove('d-none');
+                    title.innerHTML = `<i class="fas fa-check-circle mr-1"></i> Tìm thấy Top ${kValue} bộ sản phẩm lợi nhuận cao nhất`;
+                    tbody.innerHTML = '';
+
+                    if (response.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="3" class="text-muted py-4">Không có dữ liệu đơn hàng hợp lệ để phân tích.</td></tr>';
+                        return;
+                    }
+
+                    // Hiển thị dữ liệu thật lên bảng
+                    response.data.forEach((item, index) => {
+                        let rank = index + 1;
+                        let rankHtml = `<span class="badge badge-secondary" style="font-size: 14px;">${rank}</span>`;
+
+                        // Trang trí Top 1, 2, 3
+                        if (rank === 1) rankHtml = `<span class="badge" style="background-color: #ffc107; color: #212529; font-size: 14px; padding: 5px 10px; border: 1px solid #e0a800; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"><i class="fas fa-trophy mr-1" style="color: #d35400;"></i> 1</span>`;
+                        else if(rank === 2) rankHtml = `<span class="badge badge-light border text-dark" style="font-size: 14px;">2</span>`;
+                        else if(rank === 3) rankHtml = `<span class="badge badge-danger" style="font-size: 14px; background-color: #cd7f32;">3</span>`;
+
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td class="align-middle">${rankHtml}</td>
+                            <td class="text-left align-middle font-weight-bold text-dark" style="font-size: 15px;">${item.TenTapSanPham}</td>
+                            <td class="align-middle font-weight-bold text-danger">${formatCurrency(item.LoiNhuan)}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    alert("Lỗi phân tích: " + response.message);
+                }
+            },
+            error: function () {
+                btn.disabled = false;
+                spinner.classList.add('d-none');
+                alert("Lỗi kết nối đến máy chủ. Hãy thử lại!");
+            }
+        });
+    }
+</script>

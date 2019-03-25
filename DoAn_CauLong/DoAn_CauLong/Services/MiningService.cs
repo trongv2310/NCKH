@@ -67,9 +67,16 @@ namespace DoAn_CauLong.Services
                     var results = miner.GetResults();
                     if (results.Any())
                     {
-                        db.Database.ExecuteSqlCommand("TRUNCATE TABLE GoiYSanPham");
+                        // FIX LỖI TRÙNG LẶP: Dùng RemoveRange của EF thay vì lệnh TRUNCATE dễ bị lỗi khóa bảng
+                        var oldData = db.GoiYSanPhams.ToList();
+                        if (oldData.Any())
+                        {
+                            db.GoiYSanPhams.RemoveRange(oldData);
+                            db.SaveChanges(); // Xóa sạch bảng cũ
+                        }
 
-                        foreach (var r in results.Where(x => x.Itemset.Count > 1))
+                        // Không cần hàm Where(Itemset.Count > 1) nữa vì VertTopKDS đã lọc giúp ta rồi
+                        foreach (var r in results)
                         {
                             db.GoiYSanPhams.Add(new GoiYSanPham
                             {
