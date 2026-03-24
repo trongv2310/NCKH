@@ -1,0 +1,26 @@
+﻿
+@model IEnumerable<DoAn_CauLong.Models.SanPham>
+
+@if (Model != null && Model.Any())
+{
+    <div class="row">
+        @foreach (var sp in Model)
+        {
+            <div class="col-md-3 col-6 mb-4">
+                <div class="card h-100 text-center border-light shadow-sm">
+                    <a href="@Url.Action("ChiTietSanPham", "Home", new { id = sp.MaSanPham })">
+                        <img src="~/Content/images/@sp.HinhAnhDaiDien" class="card-img-top p-3" alt="@sp.TenSanPham" style="max-height: 200px; object-fit: contain;">
+                    </a>
+                    <div class="card-body p-2">
+                        <h6 class="card-title text-truncate" style="font-size: 14px;">
+                            <a href="@Url.Action("ChiTietSanPham", "Home", new { id = sp.MaSanPham })" class="text-dark text-decoration-none">@sp.TenSanPham</a>
+                        </h6>
+                        <p class="text-danger font-weight-bold mb-0">
+                            @String.Format("{0:0,0}", sp.GiaBan ?? sp.GiaGoc) đ
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
