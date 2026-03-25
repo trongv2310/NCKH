@@ -342,5 +342,51 @@ namespace DoAn_CauLong.Controllers
             }
         }
 
+        [ChildActionOnly]
+        public ActionResult GetComboKhuyenMai()
+        {
+            using (var db = new QLDN_CAULONGEntities())
+            {
+                // Lấy Top 3 Combo có độ hữu ích >= 1
+                var topCombos = db.GoiYSanPhams
+                                  .Where(x => x.Utility >= 1)
+                                  .OrderByDescending(x => x.Utility)
+                                  .Take(3)
+                                  .ToList();
+
+                var modelList = new List<ComboViewModel>();
+
+                if (topCombos == null || !topCombos.Any())
+                {
+                    return PartialView("_ComboKhuyenMai", modelList);
+                }
+
+                foreach (var combo in topCombos)
+                {
+                    var productIds = combo.Itemset.Split(',').Select(int.Parse).ToList();
+                    if (productIds.Count < 2) continue;
+
+                    var sanPhams = db.SanPhams.Where(sp => productIds.Contains(sp.MaSanPham)).ToList();
+                    if (sanPhams.Count < 2) continue;
+
+                    decimal tongGia = 0;
+                    foreach (var sp in sanPhams)
+                    {
+                        tongGia += sp.GiaBan ?? sp.GiaGoc ?? 0;
+                    }
+
+                    modelList.Add(new ComboViewModel
+                    {
+                        Itemset = combo.Itemset,
+                        SanPhams = sanPhams,
+                        TongGiaGoc = tongGia,
+                        GiaKhuyenMai = tongGia * 0.9m // Tính giá giảm 10%
+                    });
+                }
+
+                return PartialView("_ComboKhuyenMai", modelList);
+            }
+        }
+
     }
 }
