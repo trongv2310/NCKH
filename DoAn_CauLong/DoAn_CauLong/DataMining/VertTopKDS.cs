@@ -77,6 +77,7 @@ namespace DoAn_CauLong.DataMining
 
         private void AddToTopK(List<int> itemset, double utility)
         {
+            if (itemset.Count < 2) return;
             var sortedItemset = new List<int>(itemset);
             sortedItemset.Sort();
             string key = string.Join(",", sortedItemset);

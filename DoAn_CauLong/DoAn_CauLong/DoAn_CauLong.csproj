@@ -135,6 +135,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\KhuyenMaiController.cs" />
     <Compile Include="Controllers\QuanLyDonHangController.cs" />
+    <Compile Include="Controllers\QuanLyKhaiThacController.cs" />
     <Compile Include="Controllers\QuanLyKhuyenMaiController.cs" />
     <Compile Include="Controllers\QuanLySanPhamController.cs" />
     <Compile Include="Controllers\QuanLyTaiKhoanController.cs" />
@@ -410,6 +411,7 @@
     <Content Include="Views\DonHang\ThanhToanMomoSuccess.cshtml" />
     <Content Include="Views\SanPham\_ProductRecommendations.cshtml" />
     <Content Include="Views\Home\_ComboKhuyenMai.cshtml" />
+    <Content Include="Views\QuanLyKhaiThac\BoSanPhamBanChay.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
