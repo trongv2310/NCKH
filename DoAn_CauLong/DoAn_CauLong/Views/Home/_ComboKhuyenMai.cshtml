@@ -1,0 +1,265 @@
+﻿@model List<DoAn_CauLong.ViewModels.ComboViewModel>
+
+@{
+    var isLoggedIn = Session["MaTaiKhoan"] != null;
+    var loginUrl = Url.Action("DangNhap", "TaiKhoan", new { returnUrl = Url.Action("Index", "Home") });
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="container mt-4 mb-4">
+        <div class="alert alert-info text-center shadow-sm" style="border-radius: 10px; border-left: 5px solid #17a2b8;">
+            <i class="fas fa-info-circle"></i> <strong>Thông báo:</strong> Hiện tại chưa có chương trình khuyến mãi Combo. Hệ thống AI đang tiếp tục học thói quen mua sắm của khách hàng!
+        </div>
+    </div>
+}
+else
+{
+    <style>
+        .combo-section .combo-card {
+            border-radius: 15px;
+            border: 2px solid #ffc107;
+            background: #fff;
+            height: 100%;
+        }
+
+        .combo-section .combo-card-header {
+            border-radius: 12px 12px 0 0;
+            background: #ffc107;
+            color: #222;
+            text-align: center;
+            font-weight: 700;
+            font-size: 30px;
+            padding: 12px;
+        }
+
+        .combo-section .combo-card-body {
+            display: flex;
+            flex-direction: column;
+            padding: 16px 18px;
+            height: calc(100% - 56px);
+        }
+
+        .combo-section .combo-preview {
+            min-height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .combo-section .combo-preview-item {
+            width: 110px;
+            height: 110px;
+            border-radius: 10px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 8px;
+            flex-shrink: 0;
+        }
+
+        .combo-section .combo-preview-item img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .combo-section .combo-plus {
+            color: #dc3545;
+            font-weight: 700;
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .combo-section .combo-product-list {
+            min-height: 90px;
+            margin-bottom: 12px;
+        }
+
+        .combo-section .combo-product-list li {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .combo-section .combo-price {
+            margin: 12px 0 16px;
+            text-align: center;
+        }
+
+        .combo-section .combo-old-price {
+            text-decoration: line-through;
+            color: #6c757d;
+            font-size: 26px;
+        }
+
+        .combo-section .combo-new-price {
+            color: #dc3545;
+            font-weight: 700;
+            font-size: 44px;
+        }
+
+        .combo-section .btn-add-combo {
+            border-radius: 8px;
+            font-weight: 700;
+            margin-top: auto;
+        }
+    </style>
+
+    <div class="container mt-5 mb-5 combo-section">
+        <div id="combo-action-message" class="alert" style="display:none;"></div>
+
+        <div class="text-center mb-4">
+            <h2 style="color: #f36f21; font-weight: 800; text-transform: uppercase;">
+                <i class="fas fa-fire text-danger"></i> Combo siêu hời <i class="fas fa-fire text-danger"></i>
+            </h2>
+            <p class="text-muted">Mua chung tiết kiệm hơn - Giảm giá 10% cho toàn bộ Combo</p>
+        </div>
+
+        <div class="row">
+            @foreach (var combo in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="combo-card shadow-sm">
+                        <div class="combo-card-header">
+                            Combo @combo.SanPhams.Count Món Siêu Hời
+                        </div>
+                        <div class="combo-card-body">
+                            <div class="combo-preview">
+                                @for (int i = 0; i < combo.SanPhams.Count; i++)
+                                {
+                                    var sp = combo.SanPhams[i];
+                                    <a class="combo-preview-item" href="@Url.Action("ChiTietSanPham", "Home", new { id = sp.MaSanPham })" title="@sp.TenSanPham">
+                                        <img src="~/Content/images/@(string.IsNullOrEmpty(sp.HinhAnhDaiDien) ? "default-product.jpg" : sp.HinhAnhDaiDien)"
+                                             alt="@sp.TenSanPham">
+                                    </a>
+                                    if (i < combo.SanPhams.Count - 1)
+                                    {
+                                        <div class="combo-plus">+</div>
+                                    }
+                                }
+                            </div>
+
+                            <ul class="list-unstyled combo-product-list">
+                                @foreach (var sp in combo.SanPhams)
+                                {
+                                    <li class="text-truncate">
+                                        <i class="fas fa-check text-success"></i>
+                                        <a href="@Url.Action("ChiTietSanPham", "Home", new { id = sp.MaSanPham })" title="@sp.TenSanPham">@sp.TenSanPham</a>
+                                    </li>
+                                }
+                            </ul>
+
+                            <hr />
+                            <div class="combo-price">
+                                <span class="combo-old-price">@combo.TongGiaGoc.ToString("N0") đ</span>
+                                <br />
+                                <span class="combo-new-price">@combo.GiaKhuyenMai.ToString("N0") đ</span>
+                            </div>
+
+                            <button type="button" class="btn btn-success btn-block btn-add-combo" data-itemset="@combo.Itemset">
+                                <i class="fas fa-cart-plus"></i> Thêm Combo Này
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var isLoggedIn = @Html.Raw(isLoggedIn ? "true" : "false");
+            var loginUrl = '@loginUrl';
+            var addComboUrl = '@Url.Action("AddComboToCart", "GioHang")';
+            var messageBox = document.getElementById('combo-action-message');
+
+            function showMessage(type, text) {
+                if (!messageBox) return;
+
+                messageBox.className = 'alert';
+                if (type === 'success') {
+                    messageBox.classList.add('alert-success');
+                } else if (type === 'warning') {
+                    messageBox.classList.add('alert-warning');
+                } else {
+                    messageBox.classList.add('alert-danger');
+                }
+
+                messageBox.innerHTML = text;
+                messageBox.style.display = 'block';
+                window.scrollTo({ top: messageBox.offsetTop - 80, behavior: 'smooth' });
+            }
+
+            function resetButton(btn) {
+                btn.innerHTML = '<i class="fas fa-cart-plus"></i> Thêm Combo Này';
+                btn.disabled = false;
+            }
+
+            document.addEventListener('click', function (e) {
+                var btn = e.target.closest('.btn-add-combo');
+                if (!btn) return;
+
+                if (!isLoggedIn) {
+                    showMessage('warning', 'Vui lòng đăng nhập để thêm combo vào giỏ hàng. Đang chuyển đến trang đăng nhập...');
+                    setTimeout(function () {
+                        window.location.href = loginUrl;
+                    }, 1200);
+                    return;
+                }
+
+                var itemset = btn.getAttribute('data-itemset') || '';
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang thêm...';
+                btn.disabled = true;
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', addComboUrl, true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded; charset=UTF-8');
+
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState !== 4) return;
+
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        var res;
+                        try {
+                            res = JSON.parse(xhr.responseText);
+                        } catch (err) {
+                            alert('Có lỗi khi xử lý phản hồi từ server.');
+                            resetButton(btn);
+                            return;
+                        }
+
+                        if (res.success) {
+                            showMessage('success', 'Thành công: ' + res.message);
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 1000);
+                            return;
+                        }
+
+                        if (res.requireLogin && res.loginUrl) {
+                            showMessage('warning', 'Vui lòng đăng nhập để tiếp tục. Đang chuyển đến trang đăng nhập...');
+                            setTimeout(function () {
+                                window.location.href = res.loginUrl;
+                            }, 1200);
+                            return;
+                        }
+
+                        showMessage('error', 'Lỗi: ' + (res.message || 'Không thể thêm combo vào giỏ hàng.'));
+                        resetButton(btn);
+                        return;
+                    }
+
+                    showMessage('error', 'Đã xảy ra lỗi kết nối!');
+                    resetButton(btn);
+                };
+
+                xhr.send('itemset=' + encodeURIComponent(itemset));
+            });
+        })();
+    </script>
+}

@@ -144,120 +144,129 @@
         font-size: 12px;
     }
 </style>
-@{
-    int index = 0;
-    var groups = Model.GroupBy(x => x.MaLoai).OrderBy(g => g.Key).ToList();
-    var categoryImageMap = new Dictionary<int, string>
+
+<div class="container product-section">
+
+    @Html.Action("GetComboKhuyenMai", "Home")
+
+    <h2 class="section-title text-center text-uppercase font-weight-bold text-danger my-4">
+        Sản phẩm mới nhất
+    </h2>
+
+    @{
+        int index = 0;
+        var groups = Model.GroupBy(x => x.MaLoai).OrderBy(g => g.Key).ToList();
+        var categoryImageMap = new Dictionary<int, string>
 {
-        { 1, "yonex.png" },     
-        { 2, "giay_lining.png" },      
-        { 3, "aoquan.jpeg" },   
-        { 4, "banner-phukien.jpg" }  
+        { 1, "yonex.png" },
+        { 2, "giay_lining.png" },
+        { 3, "aoquan.jpeg" },
+        { 4, "banner-phukien.jpg" }
     };
-}
+    }
 
-@if (!groups.Any())
-{
-    <div class="container mt-4">
-        <p>Không có sản phẩm để hiển thị.</p>
-    </div>
-}
-else
-{
-    foreach (var g in groups)
+    @if (!groups.Any())
     {
-        var tenLoai = g.First().LoaiSanPham?.TenLoai ?? "Danh mục";
-        bool left = (index % 2 == 0);
-
-        var limitedProducts = g.Where(p => p.MaLoai == g.Key).Take(6).ToList();
-
-        string defaultCategory = Url.Content("~/Content/images/default-category.jpg");
-        string hinhAnhDaChon;
-
-        // Nếu g.Key là null HOẶC không tìm thấy g.Key.Value trong "bản đồ"
-        if (g.Key == null || !categoryImageMap.TryGetValue(g.Key.Value, out hinhAnhDaChon))
+        <div class="container mt-4">
+            <p>Không có sản phẩm để hiển thị.</p>
+        </div>
+    }
+    else
+    {
+        foreach (var g in groups)
         {
-            // Thì dùng ảnh default
-            hinhAnhDaChon = defaultCategory;
-        }
-        else
-        {
-            // Nếu có, tạo đường dẫn đầy đủ
-            hinhAnhDaChon = Url.Content($"~/Content/images/{hinhAnhDaChon}");
-        }
+            var tenLoai = g.First().LoaiSanPham?.TenLoai ?? "Danh mục";
+            bool left = (index % 2 == 0);
 
-        <section class="category @(left ? "left" : "right")">
+            var limitedProducts = g.Where(p => p.MaLoai == g.Key).Take(6).ToList();
 
-            <div class="image-block">
-                <img src="@hinhAnhDaChon"
-                     onerror="this.onerror=null;this.src='@defaultCategory';"
-                     alt="Quảng cáo @tenLoai" style="width:max();height:780px" />
-            </div>
+            string defaultCategory = Url.Content("~/Content/images/default-category.jpg");
+            string hinhAnhDaChon;
 
-            <div class="product-block">
-                <div class="header-row">
-                    <h2>@tenLoai</h2>
-                    <a href="@Url.Action("ViewAllProduct", "SanPham", new { maLoai = g.Key })" class="btn-xem-tat-ca">Xem tất cả</a>
+            // Nếu g.Key là null HOẶC không tìm thấy g.Key.Value trong "bản đồ"
+            if (g.Key == null || !categoryImageMap.TryGetValue(g.Key.Value, out hinhAnhDaChon))
+            {
+                // Thì dùng ảnh default
+                hinhAnhDaChon = defaultCategory;
+            }
+            else
+            {
+                // Nếu có, tạo đường dẫn đầy đủ
+                hinhAnhDaChon = Url.Content($"~/Content/images/{hinhAnhDaChon}");
+            }
+
+            <section class="category @(left ? "left" : "right")">
+
+                <div class="image-block">
+                    <img src="@hinhAnhDaChon"
+                         onerror="this.onerror=null;this.src='@defaultCategory';"
+                         alt="Quảng cáo @tenLoai" style="width:max();height:780px" />
                 </div>
 
-                <div class="grid">
-                    @foreach (var sp in limitedProducts)
-                    {
-                        // ========================================================
-                        // LOGIC TÍNH % KHUYẾN MÃI (Sử dụng cột GiaBan từ SQL)
-                        // ========================================================
-                        decimal giaGoc = sp.GiaGoc ?? 0m;
-                        decimal giaBanHienTai = sp.GiaBan ?? giaGoc;
-                        bool coKhuyenMai = giaBanHienTai < giaGoc;
+                <div class="product-block">
+                    <div class="header-row">
+                        <h2>@tenLoai</h2>
+                        <a href="@Url.Action("ViewAllProduct", "SanPham", new { maLoai = g.Key })" class="btn-xem-tat-ca">Xem tất cả</a>
+                    </div>
 
-                        // Tính phần trăm giảm thực tế
-                        int phanTramGiam = 0;
-                        if (giaGoc > 0 && coKhuyenMai)
+                    <div class="grid">
+                        @foreach (var sp in limitedProducts)
                         {
-                            // Công thức: (Tiền giảm / Giá gốc) * 100 -> Làm tròn số
-                            phanTramGiam = (int)Math.Round((1 - (giaBanHienTai / giaGoc)) * 100);
+                            // ========================================================
+                            // LOGIC TÍNH % KHUYẾN MÃI (Sử dụng cột GiaBan từ SQL)
+                            // ========================================================
+                            decimal giaGoc = sp.GiaGoc ?? 0m;
+                            decimal giaBanHienTai = sp.GiaBan ?? giaGoc;
+                            bool coKhuyenMai = giaBanHienTai < giaGoc;
 
-                            // Nếu có giảm giá nhưng tính ra 0% (do giảm quá ít), ép về tối thiểu 1%
-                            if (phanTramGiam == 0) { phanTramGiam = 1; }
-                        }
-
-                        // Hiển thị phần trăm (Ví dụ: -15%)
-                        string badgeText = coKhuyenMai ? "-" + phanTramGiam + "%" : "";
-                        // ========================================================
-
-                        <div class="card">
-
-                            @if (coKhuyenMai && phanTramGiam > 0)
+                            // Tính phần trăm giảm thực tế
+                            int phanTramGiam = 0;
+                            if (giaGoc > 0 && coKhuyenMai)
                             {
-                                <div class="promo-badge">@badgeText</div>
+                                // Công thức: (Tiền giảm / Giá gốc) * 100 -> Làm tròn số
+                                phanTramGiam = (int)Math.Round((1 - (giaBanHienTai / giaGoc)) * 100);
+
+                                // Nếu có giảm giá nhưng tính ra 0% (do giảm quá ít), ép về tối thiểu 1%
+                                if (phanTramGiam == 0) { phanTramGiam = 1; }
                             }
 
-                            <a href="@Url.Action("ChiTietSanPham", "Home", new { id = sp.MaSanPham })" class="d-block" style="text-decoration:none;">
-                                <img src="@Url.Content("~/Content/images/" + (string.IsNullOrEmpty(sp.HinhAnhDaiDien) ? "default-product.jpg" : sp.HinhAnhDaiDien))"
-                                     onerror="this.onerror=null;this.src='@Url.Content("~/Content/images/default-product.jpg")'"
-                                     alt="@sp.TenSanPham" />
+                            // Hiển thị phần trăm (Ví dụ: -15%)
+                            string badgeText = coKhuyenMai ? "-" + phanTramGiam + "%" : "";
+                            // ========================================================
 
-                                <h3>@sp.TenSanPham</h3>
+                            <div class="card">
 
-                                <div>
-                                    <p>
-                                        <span>@giaBanHienTai.ToString("N0")₫</span>
+                                @if (coKhuyenMai && phanTramGiam > 0)
+                                {
+                                    <div class="promo-badge">@badgeText</div>
+                                }
 
-                                        @if (coKhuyenMai)
-                                        {
-                                            <span class="old-price">@giaGoc.ToString("N0")₫</span>
-                                        }
-                                    </p>
-                                </div>
-                            </a>
-                        </div>
-                    }
+                                <a href="@Url.Action("ChiTietSanPham", "Home", new { id = sp.MaSanPham })" class="d-block" style="text-decoration:none;">
+                                    <img src="@Url.Content("~/Content/images/" + (string.IsNullOrEmpty(sp.HinhAnhDaiDien) ? "default-product.jpg" : sp.HinhAnhDaiDien))"
+                                         onerror="this.onerror=null;this.src='@Url.Content("~/Content/images/default-product.jpg")'"
+                                         alt="@sp.TenSanPham" />
+
+                                    <h3>@sp.TenSanPham</h3>
+
+                                    <div>
+                                        <p>
+                                            <span>@giaBanHienTai.ToString("N0")₫</span>
+
+                                            @if (coKhuyenMai)
+                                            {
+                                                <span class="old-price">@giaGoc.ToString("N0")₫</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </a>
+                            </div>
+                        }
+                    </div>
+
                 </div>
 
-            </div>
+            </section>
 
-        </section>
-
-        index++;
+            index++;
+        }
     }
-}

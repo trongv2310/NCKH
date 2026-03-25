@@ -179,6 +179,14 @@ CREATE TABLE GioHang (
 );
 GO
 
+CREATE TABLE GoiYSanPham (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Itemset VARCHAR(255) NOT NULL, -- Chứa chuỗi mã sản phẩm, VD: "1,5,7"
+    Utility FLOAT NOT NULL,        -- Điểm giá trị
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+GO
+
 -- =====================================
 -- 1 BẢNG PHANQUYEN
 -- =====================================

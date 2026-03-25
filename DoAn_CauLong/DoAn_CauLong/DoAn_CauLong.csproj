@@ -244,6 +244,7 @@
     <Compile Include="ViewModels\AdminDashboardViewModel.cs" />
     <Compile Include="ViewModels\CartItemViewModel.cs" />
     <Compile Include="ViewModels\CheckoutViewModel.cs" />
+    <Compile Include="ViewModels\ComboViewModel.cs" />
     <Compile Include="ViewModels\ProductDetailViewModel.cs" />
     <Compile Include="ViewModels\TaiKhoanViewModel.cs" />
     <Compile Include="Controllers\ThemPhanHoiSPController.cs" />
@@ -408,6 +409,7 @@
     <Content Include="Views\QuanLyKhuyenMai\Delete.cshtml" />
     <Content Include="Views\DonHang\ThanhToanMomoSuccess.cshtml" />
     <Content Include="Views\SanPham\_ProductRecommendations.cshtml" />
+    <Content Include="Views\Home\_ComboKhuyenMai.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
